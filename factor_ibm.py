@@ -17,6 +17,8 @@ N = 15
 a = 7
 N_COUNT = 8  # number of counting qubits
 
+
+#brute force each period
 def c_amod15(a, power):
     if a not in [2,4,7,8,11,13]:
         raise ValueError("'a' must be 2,4,7,8,11,13.")
@@ -35,6 +37,7 @@ def c_amod15(a, power):
     gate.name = f"{a}^{power} mod 15"
     return gate.control(1)
 
+#reasonable implementation
 def qft_dagger(n):
     qc = QuantumCircuit(n)
     # Swap qubits
@@ -61,14 +64,20 @@ for i in range(N_COUNT):
 qc.append(qft_dagger(N_COUNT), range(N_COUNT))
 qc.measure(range(N_COUNT), range(N_COUNT))
 qc.name = "Shor_Example"
+
+
+
 backend = service.least_busy(simulator=False)
 print("Using backend:", backend.name)
 transpiled_circ = transpile(qc, backend=backend)
 sampler = Sampler(mode=backend)
 print("Sampler is ready.")
 job = sampler.run([transpiled_circ], shots=4096)
+
 print(f"Submitted job. Job ID: {job.job_id()}")
 result = job.result()
+
+
 pub_result = result[0]  # The single-circuit result
 counts_dict = pub_result.data.c.get_counts()  # 'c' is the auto-named classical register
 shots_used = sum(counts_dict.values())
